@@ -1,5 +1,12 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
 
+/*
+   Command line program that computes number of steps in a Collatz function
+   for the first n numbers. Result is stored in a .results file in the csv format
+   {input,steps}.
+*/
 
 int collatz_compute(int n) {
     if (n <= 0)
@@ -12,25 +19,31 @@ int collatz_compute(int n) {
         } else {
             n = 3 * n + 1;
         }
+
+        ctr++;
     }
 
     return ctr;
 }
 
+#define FILENAME ".results"
+
 int main(int argc, char *argv[]) {
     int size = argc == 2 ? atoi(argv[1]) : 100;
-    
-    printf("Printing the number of steps of Collatz function for the first %d numbers:\n", size);
-    printf("--------------------------------------------------------------------------\n\n");
 
-    printf("         i          |           result\n");
-    printf("-------------------------------------------------\n")
+    printf("Computation started ...\n");
+
+    int fd = open(FILENAME, O_WRONLY | O_CREAT | O_APPEND);
+    if (fd == -1)
+        err(1, "%s", FILENAME);
 
     for (int i = 1; i < size; i++) {
         int result = collatz_compute(i);
-        printf("%10d | %10d\n");
-        printf("-------------------------------------------------\n");
+        if (dprintf(fd, "%d,%d\n", i, result) == -1)
+            err(1, NULL);
     }
+
+    printf("Task complete.");
 
     return 0;
 }
